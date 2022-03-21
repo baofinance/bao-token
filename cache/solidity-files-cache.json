@@ -1,0 +1,294 @@
+{
+  "_format": "ethers-rs-sol-cache-2",
+  "files": {
+    "/home/cmace/baoFinance/BAOv2-prototype/lib/ds-test/src/test.sol": {
+      "lastModificationDate": 1647836349905,
+      "contentHash": "5d45a46528eaf8a26f0a8d93669f3148",
+      "sourceName": "lib/ds-test/src/test.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.4.23",
+      "artifacts": {
+        "DSTest": {
+          "0.8.10+commit.fc410830.Linux.gcc": "test.sol/DSTest.json"
+        }
+      }
+    },
+    "/home/cmace/baoFinance/BAOv2-prototype/src/BAOv2.sol": {
+      "lastModificationDate": 1647836960193,
+      "contentHash": "6b376ff2035eb9eaa69d4dd9bff1131b",
+      "sourceName": "src/BAOv2.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [
+        "src/Context6.sol",
+        "src/ERC206.sol",
+        "src/IERC206.sol",
+        "src/Ownable6.sol",
+        "src/SafeMath6.sol"
+      ],
+      "versionRequirement": "=0.6.12",
+      "artifacts": {
+        "Baov2Token": {
+          "0.6.12+commit.27d51765.Linux.gcc": "BAOv2.sol/Baov2Token.json"
+        }
+      }
+    },
+    "/home/cmace/baoFinance/BAOv2-prototype/src/Context6.sol": {
+      "lastModificationDate": 1647835322777,
+      "contentHash": "27bd53f6bc16831ef245a9164442b7b3",
+      "sourceName": "src/Context6.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.6.0",
+      "artifacts": {
+        "Context": {
+          "0.6.12+commit.27d51765.Linux.gcc": "Context6.sol/Context.json"
+        }
+      }
+    },
+    "/home/cmace/baoFinance/BAOv2-prototype/src/ERC206.sol": {
+      "lastModificationDate": 1647836960229,
+      "contentHash": "0e9ca9e893ac2e9969034b94286fbfbe",
+      "sourceName": "src/ERC206.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [
+        "src/Context6.sol",
+        "src/IERC206.sol",
+        "src/SafeMath6.sol"
+      ],
+      "versionRequirement": "^0.6.0",
+      "artifacts": {
+        "ERC20": {
+          "0.6.12+commit.27d51765.Linux.gcc": "ERC206.sol/ERC20.json"
+        }
+      }
+    },
+    "/home/cmace/baoFinance/BAOv2-prototype/src/IERC206.sol": {
+      "lastModificationDate": 1647835202734,
+      "contentHash": "b4b5d91862be10d3531f76249f30639a",
+      "sourceName": "src/IERC206.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.6.0",
+      "artifacts": {
+        "IERC20": {
+          "0.6.12+commit.27d51765.Linux.gcc": "IERC206.sol/IERC20.json"
+        }
+      }
+    },
+    "/home/cmace/baoFinance/BAOv2-prototype/src/Ownable6.sol": {
+      "lastModificationDate": 1647837105562,
+      "contentHash": "24225eda2898d0bcd8b1a17c123cd479",
+      "sourceName": "src/Ownable6.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [
+        "src/Context6.sol"
+      ],
+      "versionRequirement": "^0.6.0",
+      "artifacts": {
+        "Authorizable": {
+          "0.6.12+commit.27d51765.Linux.gcc": "Ownable6.sol/Authorizable.json"
+        },
+        "Ownable": {
+          "0.6.12+commit.27d51765.Linux.gcc": "Ownable6.sol/Ownable.json"
+        }
+      }
+    },
+    "/home/cmace/baoFinance/BAOv2-prototype/src/SafeMath6.sol": {
+      "lastModificationDate": 1647835202722,
+      "contentHash": "82b7c72fae67004fd6aff8fbb7d91fa3",
+      "sourceName": "src/SafeMath6.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.6.0",
+      "artifacts": {
+        "SafeMath": {
+          "0.6.12+commit.27d51765.Linux.gcc": "SafeMath6.sol/SafeMath.json"
+        }
+      }
+    },
+    "/home/cmace/baoFinance/BAOv2-prototype/src/test/Contract.t.sol": {
+      "lastModificationDate": 1647836349597,
+      "contentHash": "7016738fe305fd90c36ea69a5cb2a78c",
+      "sourceName": "src/test/Contract.t.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [
+        "lib/ds-test/src/test.sol"
+      ],
+      "versionRequirement": "=0.8.10",
+      "artifacts": {
+        "ContractTest": {
+          "0.8.10+commit.fc410830.Linux.gcc": "Contract.t.sol/ContractTest.json"
+        }
+      }
+    }
+  }
+}
