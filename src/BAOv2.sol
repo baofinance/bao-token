@@ -1,13 +1,15 @@
 // File: Baov2Token.sol
-pragma solidity 0.6.12;
+pragma solidity ^0.8.0;
 
-import "./ERC206.sol";
-import "./Ownable6.sol";
+import "../lib/solmate/src/auth/Auth.sol";
+import "./IERC20.sol";
+import "../lib/solmate/src/tokens/ERC20.sol";
+import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
 
 
 // BAOToken with Governance.
-contract Baov2Token is ERC20("BaoToken", "BAO"), Ownable, Authorizable {
-    uint256 private _cap = 1000000000000e18;
+contract Baov2Token is ERC20("Baov2Token", "BAO", 18), Ownable {
+    uint256 private _cap = 10000000000e18; //10billion
     uint256 private _totalLock;
 
     uint256 public lockFromBlock;
@@ -15,9 +17,9 @@ contract Baov2Token is ERC20("BaoToken", "BAO"), Ownable, Authorizable {
     uint256 public manualMintLimit = 1000000e18;
     uint256 public manualMinted = 0;
 
-
     mapping(address => uint256) private _locks;
     mapping(address => uint256) private _lastUnlockBlock;
+
 
     event Lock(address indexed to, uint256 value);
 
@@ -33,18 +35,21 @@ contract Baov2Token is ERC20("BaoToken", "BAO"), Ownable, Authorizable {
         return _cap;
     }
 
-    // Update the total cap - can go up or down but wont destroy prevoius tokens.
-    function capUpdate(uint256 _newCap) public onlyAuthorized {
+    // Update the total cap - can go up or down but wont destroy previous tokens.
+    //needs to check msg.sender, used to be onlyAuthorized modifier
+    function capUpdate(uint256 _newCap) public {
         _cap = _newCap;
     }
 
     // Update the lockFromBlock
-    function lockFromUpdate(uint256 _newLockFrom) public onlyAuthorized {
+    //needs to check msg.sender, used to be onlyAuthorized modifier
+    function lockFromUpdate(uint256 _newLockFrom) public {
         lockFromBlock = _newLockFrom;
     }
 
     // Update the lockToBlock
-    function lockToUpdate(uint256 _newLockTo) public onlyAuthorized {
+    //needs to check msg.sender, used to be onlyAuthorized modifier
+    function lockToUpdate(uint256 _newLockTo) public {
         lockToBlock = _newLockTo;
     }
 
@@ -71,7 +76,7 @@ contract Baov2Token is ERC20("BaoToken", "BAO"), Ownable, Authorizable {
      *
      * - minted tokens must not cause the total supply to go over the cap.
      */
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual override {
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual {
         super._beforeTokenTransfer(from, to, amount);
 
         if (from == address(0)) { // When minting tokens
@@ -93,7 +98,7 @@ contract Baov2Token is ERC20("BaoToken", "BAO"), Ownable, Authorizable {
      * - `recipient` cannot be the zero address.
      * - `sender` must have a balance of at least `amount`.
      */
-    function _transfer(address sender, address recipient, uint256 amount) internal virtual override {
+    function _transfer(address sender, address recipient, uint256 amount) internal virtual {
         super._transfer(sender, recipient, amount);
         _moveDelegates(_delegates[sender], _delegates[recipient], amount);
     }
@@ -104,7 +109,8 @@ contract Baov2Token is ERC20("BaoToken", "BAO"), Ownable, Authorizable {
         _moveDelegates(address(0), _delegates[_to], _amount);
     }
 
-    function manualMint(address _to, uint256 _amount) public onlyAuthorized {
+    //needs to check msg.sender, used to be onlyAuthorized modifier
+    function manualMint(address _to, uint256 _amount) public {
         if(manualMinted < manualMintLimit){
             _mint(_to, _amount);
             _moveDelegates(address(0), _delegates[_to], _amount);
@@ -210,9 +216,6 @@ contract Baov2Token is ERC20("BaoToken", "BAO"), Ownable, Authorizable {
 
     /// @notice The EIP-712 typehash for the delegation struct used by the contract
     bytes32 public constant DELEGATION_TYPEHASH = keccak256("Delegation(address delegatee,uint256 nonce,uint256 expiry)");
-
-    /// @notice A record of states for signing / validating signatures
-    mapping (address => uint) public nonces;
 
     /// @notice An event thats emitted when an account changes its delegate
     event DelegateChanged(address indexed delegator, address indexed fromDelegate, address indexed toDelegate);

@@ -1,7 +1,7 @@
 {
   "_format": "ethers-rs-sol-cache-2",
   "files": {
-    "/home/cmace/baoFinance/BAOv2-prototype/lib/ds-test/src/test.sol": {
+    "/home/cmace/baoFinance/BAOv2-token-prototype/lib/ds-test/src/test.sol": {
       "lastModificationDate": 1647836349905,
       "contentHash": "5d45a46528eaf8a26f0a8d93669f3148",
       "sourceName": "lib/ds-test/src/test.sol",
@@ -29,15 +29,133 @@
       },
       "imports": [],
       "versionRequirement": ">=0.4.23",
-      "artifacts": {
-        "DSTest": {
-          "0.8.10+commit.fc410830.Linux.gcc": "test.sol/DSTest.json"
-        }
-      }
+      "artifacts": {}
     },
-    "/home/cmace/baoFinance/BAOv2-prototype/src/BAOv2.sol": {
-      "lastModificationDate": 1647836960193,
-      "contentHash": "6b376ff2035eb9eaa69d4dd9bff1131b",
+    "/home/cmace/baoFinance/BAOv2-token-prototype/lib/openzeppelin-contracts/contracts/access/Ownable.sol": {
+      "lastModificationDate": 1647898699244,
+      "contentHash": "8398972af73b4e9e5ff3b31cad86234f",
+      "sourceName": "lib/openzeppelin-contracts/contracts/access/Ownable.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [
+        "lib/openzeppelin-contracts/contracts/utils/Context.sol"
+      ],
+      "versionRequirement": "^0.8.0",
+      "artifacts": {}
+    },
+    "/home/cmace/baoFinance/BAOv2-token-prototype/lib/openzeppelin-contracts/contracts/utils/Context.sol": {
+      "lastModificationDate": 1647898699252,
+      "contentHash": "5f2c5c4b6af2dd4551027144797bc8be",
+      "sourceName": "lib/openzeppelin-contracts/contracts/utils/Context.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": "^0.8.0",
+      "artifacts": {}
+    },
+    "/home/cmace/baoFinance/BAOv2-token-prototype/lib/solmate/src/auth/Auth.sol": {
+      "lastModificationDate": 1647898657845,
+      "contentHash": "76a634d0a382819537ecf118eb247a84",
+      "sourceName": "lib/solmate/src/auth/Auth.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.8.0",
+      "artifacts": {}
+    },
+    "/home/cmace/baoFinance/BAOv2-token-prototype/lib/solmate/src/tokens/ERC20.sol": {
+      "lastModificationDate": 1647898657845,
+      "contentHash": "95ac3ff5640ab4a57dc4cdc2992e79c0",
+      "sourceName": "lib/solmate/src/tokens/ERC20.sol",
+      "solcConfig": {
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "": [
+                "ast"
+              ],
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers"
+              ]
+            }
+          },
+          "evmVersion": "london"
+        }
+      },
+      "imports": [],
+      "versionRequirement": ">=0.8.0",
+      "artifacts": {}
+    },
+    "/home/cmace/baoFinance/BAOv2-token-prototype/src/BAOv2.sol": {
+      "lastModificationDate": 1647916908412,
+      "contentHash": "219c8093e5b964aa540bfb7254db9182",
       "sourceName": "src/BAOv2.sol",
       "solcConfig": {
         "settings": {
@@ -62,23 +180,19 @@
         }
       },
       "imports": [
-        "src/Context6.sol",
-        "src/ERC206.sol",
-        "src/IERC206.sol",
-        "src/Ownable6.sol",
-        "src/SafeMath6.sol"
+        "lib/openzeppelin-contracts/contracts/access/Ownable.sol",
+        "lib/openzeppelin-contracts/contracts/utils/Context.sol",
+        "lib/solmate/src/auth/Auth.sol",
+        "lib/solmate/src/tokens/ERC20.sol",
+        "src/IERC20.sol"
       ],
-      "versionRequirement": "=0.6.12",
-      "artifacts": {
-        "Baov2Token": {
-          "0.6.12+commit.27d51765.Linux.gcc": "BAOv2.sol/Baov2Token.json"
-        }
-      }
+      "versionRequirement": "^0.8.0",
+      "artifacts": {}
     },
-    "/home/cmace/baoFinance/BAOv2-prototype/src/Context6.sol": {
-      "lastModificationDate": 1647835322777,
-      "contentHash": "27bd53f6bc16831ef245a9164442b7b3",
-      "sourceName": "src/Context6.sol",
+    "/home/cmace/baoFinance/BAOv2-token-prototype/src/IERC20.sol": {
+      "lastModificationDate": 1647898699248,
+      "contentHash": "a44d1a099633876550ad2476b21bafbe",
+      "sourceName": "src/IERC20.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -102,162 +216,13 @@
         }
       },
       "imports": [],
-      "versionRequirement": "^0.6.0",
-      "artifacts": {
-        "Context": {
-          "0.6.12+commit.27d51765.Linux.gcc": "Context6.sol/Context.json"
-        }
-      }
+      "versionRequirement": "^0.8.0",
+      "artifacts": {}
     },
-    "/home/cmace/baoFinance/BAOv2-prototype/src/ERC206.sol": {
-      "lastModificationDate": 1647836960229,
-      "contentHash": "0e9ca9e893ac2e9969034b94286fbfbe",
-      "sourceName": "src/ERC206.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ]
-            }
-          },
-          "evmVersion": "london"
-        }
-      },
-      "imports": [
-        "src/Context6.sol",
-        "src/IERC206.sol",
-        "src/SafeMath6.sol"
-      ],
-      "versionRequirement": "^0.6.0",
-      "artifacts": {
-        "ERC20": {
-          "0.6.12+commit.27d51765.Linux.gcc": "ERC206.sol/ERC20.json"
-        }
-      }
-    },
-    "/home/cmace/baoFinance/BAOv2-prototype/src/IERC206.sol": {
-      "lastModificationDate": 1647835202734,
-      "contentHash": "b4b5d91862be10d3531f76249f30639a",
-      "sourceName": "src/IERC206.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ]
-            }
-          },
-          "evmVersion": "london"
-        }
-      },
-      "imports": [],
-      "versionRequirement": "^0.6.0",
-      "artifacts": {
-        "IERC20": {
-          "0.6.12+commit.27d51765.Linux.gcc": "IERC206.sol/IERC20.json"
-        }
-      }
-    },
-    "/home/cmace/baoFinance/BAOv2-prototype/src/Ownable6.sol": {
-      "lastModificationDate": 1647837105562,
-      "contentHash": "24225eda2898d0bcd8b1a17c123cd479",
-      "sourceName": "src/Ownable6.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ]
-            }
-          },
-          "evmVersion": "london"
-        }
-      },
-      "imports": [
-        "src/Context6.sol"
-      ],
-      "versionRequirement": "^0.6.0",
-      "artifacts": {
-        "Authorizable": {
-          "0.6.12+commit.27d51765.Linux.gcc": "Ownable6.sol/Authorizable.json"
-        },
-        "Ownable": {
-          "0.6.12+commit.27d51765.Linux.gcc": "Ownable6.sol/Ownable.json"
-        }
-      }
-    },
-    "/home/cmace/baoFinance/BAOv2-prototype/src/SafeMath6.sol": {
-      "lastModificationDate": 1647835202722,
-      "contentHash": "82b7c72fae67004fd6aff8fbb7d91fa3",
-      "sourceName": "src/SafeMath6.sol",
-      "solcConfig": {
-        "settings": {
-          "optimizer": {
-            "enabled": true,
-            "runs": 200
-          },
-          "outputSelection": {
-            "*": {
-              "": [
-                "ast"
-              ],
-              "*": [
-                "abi",
-                "evm.bytecode",
-                "evm.deployedBytecode",
-                "evm.methodIdentifiers"
-              ]
-            }
-          },
-          "evmVersion": "london"
-        }
-      },
-      "imports": [],
-      "versionRequirement": "^0.6.0",
-      "artifacts": {
-        "SafeMath": {
-          "0.6.12+commit.27d51765.Linux.gcc": "SafeMath6.sol/SafeMath.json"
-        }
-      }
-    },
-    "/home/cmace/baoFinance/BAOv2-prototype/src/test/Contract.t.sol": {
+    "/home/cmace/baoFinance/BAOv2-token-prototype/src/test/BAOv2.t.sol": {
       "lastModificationDate": 1647836349597,
       "contentHash": "7016738fe305fd90c36ea69a5cb2a78c",
-      "sourceName": "src/test/Contract.t.sol",
+      "sourceName": "src/test/BAOv2.t.sol",
       "solcConfig": {
         "settings": {
           "optimizer": {
@@ -284,11 +249,7 @@
         "lib/ds-test/src/test.sol"
       ],
       "versionRequirement": "=0.8.10",
-      "artifacts": {
-        "ContractTest": {
-          "0.8.10+commit.fc410830.Linux.gcc": "Contract.t.sol/ContractTest.json"
-        }
-      }
+      "artifacts": {}
     }
   }
 }
