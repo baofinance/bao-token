@@ -1,3 +1,6 @@
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "lib/multichain-smart-contracts"]
+	path = lib/multichain-smart-contracts
+	url = https://github.com/anyswap/multichain-smart-contracts
