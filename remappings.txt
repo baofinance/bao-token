@@ -1,3 +1,2 @@
 ds-test=lib/ds-test/src/
 @openzeppelin=lib/openzeppelin-contracts/contracts/
-@anyswap=lib/anyswap/multichain-smart-contracts/contracts

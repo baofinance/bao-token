@@ -2,7 +2,7 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
-import "@anyswap/anytoken/MultichainV7ERC20.sol";
+import "./MultichainV7ERC20.sol";
 
 //Multichain standard ERC20 with minting and Burning permissions, also admin/internal access as of now
 //Add in the ability to optionaly upgrade to using layer0 network if we finesse a BAO Chainlink oracle down the line?
@@ -23,7 +23,7 @@ contract BaoV2Token is MultichainV7ERC20 {
         uint256 _cap,
         address _admin,
         address _underlying
-    ) BaoV2Token(_name, _symbol, _decimals, _cap, _admin) { //BaoToken, BAO, 18, 1Bill, admin address
+    ) MultichainV7ERC20(_name, _symbol, _decimals, _cap, _admin) { //BaoToken, BAO, 18, 1Bill, admin address
         require(_underlying != address(0), "underlying is the zero address");
         require(_underlying != address(this), "underlying is same to address(this)");
         require(_decimals == IERC20Metadata(_underlying).decimals(), "decimals mismatch");
