@@ -1,55 +1,46 @@
-// SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.10;
 
-import "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
-import "./MultichainV7ERC20.sol";
+//import "@openzeppelin/token/ERC20/IERC20.sol";
+import "@openzeppelin/access/AccessControlEnumerable.sol";
+import "@openzeppelin/token/ERC20/extensions/ERC20Capped.sol";
 
-//Multichain standard ERC20 with minting and Burning permissions, also admin/internal access as of now
-//Add in the ability to optionaly upgrade to using layer0 network if we finesse a BAO Chainlink oracle down the line?
+contract BaoToken is ERC20Capped, AccessControlEnumerable {
+    uint8 immutable _tokenDecimals;
+    uint256 private _cap = 15000000000e18;
+    //permissions
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
-//underlying ERC20
-contract BaoV2Token is MultichainV7ERC20 {
-    using SafeERC20 for IERC20;
-
-    address public immutable override underlying;
-
-    event Deposit(address indexed from, address indexed to, uint256 amount);
-    event Withdraw(address indexed from, address indexed to, uint256 amount);
+    uint256 mintLimit = 15000000e18; // single limit of each mint
+    uint256 burnLimit = 15000000e18; // single limit of each burn
 
     constructor(
         string memory _name,
         string memory _symbol,
         uint8 _decimals,
         uint256 _cap,
-        address _admin,
-        address _underlying
-    ) MultichainV7ERC20(_name, _symbol, _decimals, _cap, _admin) { //BaoToken, BAO, 18, 1Bill, admin address
-        require(_underlying != address(0), "underlying is the zero address");
-        require(_underlying != address(this), "underlying is same to address(this)");
-        require(_decimals == IERC20Metadata(_underlying).decimals(), "decimals mismatch");
-
-        underlying = _underlying;
+        address _admin
+    )
+    ERC20(_name, _symbol)
+    ERC20Capped(_cap)
+    {
+        // Grant roles to addresses
+        _tokenDecimals = _decimals;
+        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
+        _setupRole(MINTER_ROLE, _admin);
+        _setupRole(BURNER_ROLE, _admin);
+        //mint 0 tokens
+        _mint(msg.sender, 0);
     }
 
-    function deposit(uint256 amount) public returns (uint256) {
-        return deposit(amount, msg.sender);
-    }
-
-    function deposit(uint256 amount, address to) public returns (uint256) {
-        IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
+    function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
+        require((totalSupply() + amount) <= _cap, "cap exceeded");
+        require(amount <= mintLimit, "max mint exceeded");
         _mint(to, amount);
-        emit Deposit(msg.sender, to, amount);
-        return amount;
     }
 
-    function withdraw(uint256 amount) public returns (uint256) {
-        return withdraw(amount, msg.sender);
-    }
-
-    function withdraw(uint256 amount, address to) public returns (uint256) {
-        _burn(msg.sender, amount);
-        IERC20(underlying).safeTransfer(to, amount);
-        emit Withdraw(msg.sender, to, amount);
-        return amount;
+    function burn(address from, uint256 amount) public onlyRole(BURNER_ROLE) {
+        require(amount <= burnLimit, "max burn exceeded");
+        _burn(from, amount);
     }
 }
