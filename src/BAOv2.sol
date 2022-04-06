@@ -1,8 +1,7 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/access/AccessControlEnumerable.sol"; //give and take access + see what addresses have which roles
-import "@openzeppelin/token/ERC20/extensions/ERC20Capped.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Capped.sol"; //define immutable cap
+import "@openzeppelin/token/ERC20/extensions/ERC20Capped.sol"; //define immutable cap
 
 contract BaoToken is ERC20Capped, AccessControlEnumerable {
     // -- EIP712 --
