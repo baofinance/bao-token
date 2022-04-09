@@ -1,9 +1,10 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/access/AccessControlEnumerable.sol"; //give and take access + see what addresses have which roles
-import "@openzeppelin/token/ERC20/extensions/ERC20Capped.sol"; //define immutable cap
+import "@openzeppelin/token/ERC20/extensions/ERC20Capped.sol";
+import "solmate/utils/ReentrancyGuard.sol"; //define immutable cap
 
-contract BaoToken is ERC20Capped, AccessControlEnumerable {
+contract BaoToken is ERC20Capped, AccessControlEnumerable, ReentrancyGuard {
     // -- EIP712 --
     bytes32 private constant DOMAIN_TYPEHASH = keccak256(
         "EIP712Domain(string name,uint256 chainId,address verifyingContract,bytes32 salt)"
@@ -15,7 +16,9 @@ contract BaoToken is ERC20Capped, AccessControlEnumerable {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
-    uint256 internal burnLimit = 15e24; // single limit of each burn
+    uint256 public constant MAX_SUPPLY = 15e26; // 1.5 billion
+
+    ERC20 public baoV1;
 
     constructor(
         string memory _name, // Bao Finance
@@ -38,15 +41,22 @@ contract BaoToken is ERC20Capped, AccessControlEnumerable {
                 DOMAIN_SALT
             )
         );
+
+        baoV1 = ERC20(0x374CB8C27130E2c9E04F44303f3c8351B9De61C1);
     }
 
     function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
-        //internal virtual overide check in ERC20Capped.sol to make sure cap is not exceeded
+        // internal virtual overide check in ERC20Capped.sol to make sure cap is not exceeded
         _mint(to, amount);
     }
 
     function burn(address from, uint256 amount) public onlyRole(BURNER_ROLE) {
-        require(amount <= burnLimit, "max burn exceeded");
+        require(amount <= MAX_SUPPLY, "max burn exceeded");
         _burn(from, amount);
+    }
+
+    function convertV1(uint256 _amount) public nonReentrant {
+        baoV1.transferFrom(msg.sender, address(0), _amount); // Burn BAOV1
+        mint(msg.sender, _amount / 1000); // BaoV2's supply is reduced by a factor of 1000
     }
 }
