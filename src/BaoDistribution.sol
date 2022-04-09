@@ -3,6 +3,7 @@ pragma solidity ^0.8.10;
 import "./BAOv2.sol";
 import "solmate/utils/FixedPointMathLib.sol";
 import "solmate/utils/ReentrancyGuard.sol";
+import "@openzeppelin/utils/cryptography/MerkleProof.sol";
 
 contract BaoDistribution is ReentrancyGuard {
 
@@ -12,6 +13,7 @@ contract BaoDistribution is ReentrancyGuard {
 
     BaoToken public baoToken;
     mapping(address => DistInfo) public distributions;
+    bytes32[] public merkleRoots;
 
     // -------------------------------
     // STRUCTS
@@ -27,19 +29,21 @@ contract BaoDistribution is ReentrancyGuard {
     // EVENTS
     // -------------------------------
 
-    event DistributionStarted(address _account, uint64 _timestamp, uint64 _duration);
-    event TokensClaimed(address _account, uint64 timestamp, uint256 _amount);
+    event DistributionStarted(address _account);
+    event TokensClaimed(address _account, uint256 _amount);
 
-    constructor(BaoToken _baoToken) {
+    constructor(BaoToken _baoToken, bytes32[] memory _merkleRoots) {
         baoToken = _baoToken;
+        merkleRoots = _merkleRoots;
     }
 
     // -------------------------------
     // PUBLIC FUNCTIONS
     // -------------------------------
 
-    function startDistribution() external {
+    function startDistribution(/*bytes32[] memory proof, bytes32 leaf*/) external {
         require(distributions[msg.sender].dateStarted == 0, "ERROR: Distribution already started");
+        // require(verifyProof(proof, leaf), "ERROR: Invalid proof");
 
         // uint delta = 730 days - time;
         // uint pctDiff = FixedPointMathLib.mulDivDown(time, 1e18, 730 days) * 100;
@@ -51,6 +55,7 @@ contract BaoDistribution is ReentrancyGuard {
             now,
             1e22 // TODO: User needs to provide proof of locked tokens. For the initial distribution curve testing, consider 100 tokens locked.
         );
+        emit DistributionStarted(msg.sender);
     }
 
     function claim() external nonReentrant {
@@ -64,7 +69,7 @@ contract BaoDistribution is ReentrancyGuard {
         baoToken.transfer(msg.sender, claimable);
 
         // Emit tokens claimed event for logging
-        emit TokensClaimed(msg.sender, timestamp, claimable);
+        emit TokensClaimed(msg.sender, claimable);
     }
 
     function claimable(address _account, uint64 _timestamp) public view returns (uint256 c) {
@@ -99,5 +104,13 @@ contract BaoDistribution is ReentrancyGuard {
             : FixedPointMathLib.mulDivDown(3065, daysSinceStart, 1e7),
             1e18
         );
+    }
+
+    function verifyProof(bytes32[] memory _proof, bytes32 _leaf) public view returns (bool) {
+        for (uint i; i < merkleRoots.length;) {
+            if (MerkleProof.verify(_proof, merkleRoots[i], _leaf)) return true;
+            unchecked { ++i; }
+        }
+        return false;
     }
 }

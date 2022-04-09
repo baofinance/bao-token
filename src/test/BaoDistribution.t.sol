@@ -23,7 +23,8 @@ contract BaoDistributionTest is DSTest {
             "BAO",
             15e24
         );
-        distribution = new BaoDistribution(baoToken);
+        bytes32[] memory _proofs;
+        distribution = new BaoDistribution(baoToken, _proofs);
         baoToken.mint(address(distribution), 1e22);
     }
 
