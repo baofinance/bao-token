@@ -1,1 +1,1 @@
-# BAOv2-token-prototype
+# BAOv2 Token ![Test Workflow](https://github.com/baofinance/BaoV2-Token-Prototype/actions/workflows/forgetests.yml/badge.svg)
