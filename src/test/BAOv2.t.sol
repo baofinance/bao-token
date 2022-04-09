@@ -2,11 +2,16 @@
 pragma solidity 0.8.10;
 
 import "ds-test/test.sol";
+import "../BAOv2.sol";
 
 contract ContractTest is DSTest {
-    function setUp() public {}
+    BaoToken public baoToken;
 
-    function testExample() public {
-        assertTrue(true);
+    function setUp() public {
+        baoToken = new BaoToken(
+            "Bao Finance",
+            "BAO",
+            15e24
+        );
     }
 }

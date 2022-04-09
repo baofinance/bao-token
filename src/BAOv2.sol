@@ -12,25 +12,21 @@ contract BaoToken is ERC20Capped, AccessControlEnumerable {
     bytes32 private constant DOMAIN_SALT = 0xfff6c856a1f2b4269a1d1d9bacd121f1c9273b6650961875824ce18cfc2ed86e;
     bytes32 private DOMAIN_SEPARATOR; //defined by constructor
 
-    //permissions
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
-    uint256 internal burnLimit = 15000000e18; // single limit of each burn
+    uint256 internal burnLimit = 15e24; // single limit of each burn
 
     constructor(
-        string memory _name, //BaoToken
-        string memory _symbol, //BAO
-        uint256 cap,
-        address _admin
-    )
-    ERC20(_name, _symbol)
-    ERC20Capped(cap)
-    {
+        string memory _name, // Bao Finance
+        string memory _symbol, // BAO
+        uint256 cap
+    ) ERC20(_name, _symbol) ERC20Capped(cap) {
+        address msgSender = msg.sender;
         // Grant roles to addresses
-        _setupRole(DEFAULT_ADMIN_ROLE, _admin);
-        _setupRole(MINTER_ROLE, _admin);
-        _setupRole(BURNER_ROLE, _admin);
+        _setupRole(DEFAULT_ADMIN_ROLE, msgSender);
+        _setupRole(MINTER_ROLE, msgSender);
+        _setupRole(BURNER_ROLE, msgSender);
 
         // EIP-712 domain separator
         DOMAIN_SEPARATOR = keccak256(
@@ -42,9 +38,6 @@ contract BaoToken is ERC20Capped, AccessControlEnumerable {
                 DOMAIN_SALT
             )
         );
-
-        //mint 0 tokens
-        _mint(msg.sender, 0);
     }
 
     function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
