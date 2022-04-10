@@ -10,8 +10,7 @@ contract ContractTest is DSTest {
     function setUp() public {
         baoToken = new BaoToken(
             "Bao Finance",
-            "BAO",
-            15e24
+            "BAO"
         );
     }
 }

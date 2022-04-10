@@ -2,7 +2,7 @@ pragma solidity ^0.8.10;
 
 import "@openzeppelin/access/AccessControlEnumerable.sol"; //give and take access + see what addresses have which roles
 import "@openzeppelin/token/ERC20/extensions/ERC20Capped.sol";
-import "solmate/utils/ReentrancyGuard.sol"; //define immutable cap
+import "solmate/utils/ReentrancyGuard.sol";
 
 contract BaoToken is ERC20Capped, AccessControlEnumerable, ReentrancyGuard {
     // -- EIP712 --
@@ -22,9 +22,8 @@ contract BaoToken is ERC20Capped, AccessControlEnumerable, ReentrancyGuard {
 
     constructor(
         string memory _name, // Bao Finance
-        string memory _symbol, // BAO
-        uint256 cap
-    ) ERC20(_name, _symbol) ERC20Capped(cap) {
+        string memory _symbol // BAO
+    ) ERC20(_name, _symbol) ERC20Capped(MAX_SUPPLY) {
         address msgSender = msg.sender;
         // Grant roles to addresses
         _setupRole(DEFAULT_ADMIN_ROLE, msgSender);
@@ -51,12 +50,11 @@ contract BaoToken is ERC20Capped, AccessControlEnumerable, ReentrancyGuard {
     }
 
     function burn(address from, uint256 amount) public onlyRole(BURNER_ROLE) {
-        require(amount <= MAX_SUPPLY, "max burn exceeded");
         _burn(from, amount);
     }
 
     function convertV1(uint256 _amount) public nonReentrant {
         baoV1.transferFrom(msg.sender, address(0), _amount); // Burn BAOV1
-        mint(msg.sender, _amount / 1000); // BaoV2's supply is reduced by a factor of 1000
+        mint(msg.sender, _amount / 1e4); // BaoV2's max supply is reduced by a factor of 1000
     }
 }
