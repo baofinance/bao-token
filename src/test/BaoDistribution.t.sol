@@ -7,6 +7,7 @@ import "solmate/utils/FixedPointMathLib.sol";
 
 interface Cheats {
     function warp(uint256) external;
+    function assume(bool) external;
 }
 
 contract BaoDistributionTest is DSTest {
@@ -26,9 +27,13 @@ contract BaoDistributionTest is DSTest {
             "BAO"
         );
 
-        // The distribution-merkle root we provide here is created for testing purposes only. In this distribution-merkle tree,
+        // The merkle root we provide here is created for testing purposes only. In this merkle tree,
         // this contract's address (0xb4c79dab8f259c7aee6e5b2aa729821864227e84) is owed 1e22 (1000) tokens.
-        distribution = new BaoDistribution(baoToken, 0x46c1f7da0f8cf7398e41724cc3a07901298ea14b7d4b5990062450bdb01ac5ec);
+        distribution = new BaoDistribution(
+            baoToken,
+            0x46c1f7da0f8cf7398e41724cc3a07901298ea14b7d4b5990062450bdb01ac5ec,
+            0x3dFc49e5112005179Da613BdE5973229082dAc35
+        );
 
         // Mint the amount that this contract will be distributed
         amount = 1e22;
@@ -75,20 +80,36 @@ contract BaoDistributionTest is DSTest {
             distribution.claim();
             assertEq(
                 baoToken.balanceOf(address(this)),
-                distribution.distCurve(amount, FixedPointMathLib.mulDivDown((block.timestamp - initialTimestamp), 1e18, 86400))
+                distribution.distCurve(amount, _toDays(block.timestamp - initialTimestamp))
             );
         }
 
         // Ensure the total amount this contract is owed has been claimed after the full distribution.
-        (,,uint256 owed) = distribution.distributions(address(this));
         assertEq(baoToken.balanceOf(address(this)), amount);
         assertEq(baoToken.balanceOf(address(distribution)), 0);
+    }
+
+    function testClaimableFuzz(uint64 _daysSince) public {
+        cheats.assume(_daysSince <= 730 days && _daysSince > 0);
+
+        distribution.startDistribution(proof, amount);
+        uint256 claimable = distribution.claimable(address(this), 0);
+        assertEq(claimable, 0);
+
+        uint256 initialTimestamp = block.timestamp;
+
+        cheats.warp(block.timestamp + _daysSince);
+        distribution.claim();
+        assertEq(
+            baoToken.balanceOf(address(this)),
+            distribution.distCurve(amount, _toDays(block.timestamp - initialTimestamp))
+        );
     }
 
     function testClaimOnce() public {
         distribution.startDistribution(proof, amount);
 
-        cheats.warp(block.timestamp + 731 days);
+        cheats.warp(block.timestamp + 750 days);
         distribution.claim();
 
         assertEq(baoToken.balanceOf(address(this)), amount);
@@ -99,26 +120,59 @@ contract BaoDistributionTest is DSTest {
         distribution.claim();
     }
 
-    function testFailClaimableUnrecognizedAddress() public {
+    function testFailClaimableUnrecognizedAddress() public view {
         distribution.claimable(address(0), 0);
     }
 
-    //END Distribution tests
+    // -------------------------------
+    // END DISTRIBUTION TESTS
+    // -------------------------------
+
     function testFailEndDistributionZeroTokens() public {
         distribution.startDistribution(proof, amount);
         distribution.endDistribution();
     }
 
-    function testEndDistribution() public {
+    function testEndDistribution(uint64 _daysSince) public {
+        cheats.assume(_daysSince <= 730 days && _daysSince > 0);
+
         distribution.startDistribution(proof, amount);
 
-        cheats.warp(block.timestamp + 365 days);
+        cheats.warp(block.timestamp + _daysSince);
         distribution.endDistribution();
 
-        //assert balanceOf(address(this)) = amount owed based on normal claim + slash claim
-        assertEq(
-            baoToken.balanceOf(address(this)),
-            distribution.distCurve(amount, FixedPointMathLib.mulDivDown((365 days), 1e18, 86400))
+        uint256 tokensAccruedToDate =  distribution.distCurve(
+            amount,
+            _toDays(_daysSince)
         );
+        uint256 tokensLeft = distribution.distCurve(
+            amount,
+            _toDays(730 days)
+        ) - tokensAccruedToDate;
+
+        uint256 slash = FixedPointMathLib.mulDivDown(
+            1e18 - FixedPointMathLib.mulDivDown(_toDays(_daysSince), 1e18, 730e18),
+            tokensLeft,
+            1e18
+        );
+        uint256 owed = tokensLeft - slash;
+
+        uint256 selfBalance = baoToken.balanceOf(address(this));
+        uint256 treasuryBalance = baoToken.balanceOf(distribution.treasury());
+
+        // Ensure that the account received the predicted amount of owed tokens
+        assertEq(selfBalance, tokensAccruedToDate + owed);
+        // Ensure that the treasury received the predicted amount of slashed tokens
+        assertEq(treasuryBalance, slash);
+        // Ensure that the entirety of tokens were distributed amongst the account and the treasury
+        assertEq(selfBalance + treasuryBalance, amount);
+    }
+
+    // -------------------------------
+    // HELPERS
+    // -------------------------------
+
+    function _toDays(uint256 d) private pure returns (uint256) {
+        return FixedPointMathLib.mulDivDown(d, 1e18, 86400);
     }
 }

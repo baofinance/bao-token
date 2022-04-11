@@ -13,6 +13,7 @@ contract BaoDistribution is ReentrancyGuard {
 
     BaoToken public baoToken;
     mapping(address => DistInfo) public distributions;
+    address public treasury;
 
     // -------------------------------
     // CONSTANTS
@@ -26,6 +27,7 @@ contract BaoDistribution is ReentrancyGuard {
 
     struct DistInfo {
         uint64 dateStarted;
+        uint64 dateEnded;
         uint64 lastClaim;
         uint256 amountOwedTotal;
     }
@@ -44,9 +46,10 @@ contract BaoDistribution is ReentrancyGuard {
      * @param _baoToken Token to distribute.
      * @param _merkleRoot Merkle root to verify accounts' inclusion and amount owed when starting their distribution.
      */
-    constructor(BaoToken _baoToken, bytes32 _merkleRoot) {
+    constructor(BaoToken _baoToken, bytes32 _merkleRoot, address _treasury) {
         baoToken = _baoToken;
         merkleRoot = _merkleRoot;
+        treasury = _treasury;
     }
 
     // -------------------------------
@@ -64,10 +67,11 @@ contract BaoDistribution is ReentrancyGuard {
         require(verifyProof(_proof, keccak256(abi.encodePacked(msg.sender, _amount))), "ERROR: Invalid proof");
 
         // This is artificial for now.
-        uint64 now = uint64(block.timestamp);
+        uint64 _now = uint64(block.timestamp);
         distributions[msg.sender] = DistInfo(
-            now,
-            now,
+            _now,
+            0,
+            _now,
             _amount
         );
         emit DistributionStarted(msg.sender);
@@ -91,28 +95,42 @@ contract BaoDistribution is ReentrancyGuard {
     }
 
     /**
-     * Claim all tokens that have been accrued since msg.sender's last claim. AND
-     * Claim the rest of the total locked amount owed immediately at a slashed rate
+     * Claim all tokens that have been accrued since msg.sender's last claim AND
+     * the rest of the total locked amount owed immediately at a pre-defined slashed rate.
+     * Rate: ((1 - daysSinceStart / 730) * 100)% of remaining distribution
      */
     function endDistribution() external nonReentrant {
         uint256 _claimable = claimable(msg.sender, 0);
         require(_claimable > 0, "ERROR: Nothing to claim");
-        DistInfo memory distribution;
 
-        // Update account's DistInfo
-        distribution.lastClaim = uint64(block.timestamp);
+        DistInfo storage distInfo = distributions[msg.sender];
+        uint64 timestamp = uint64(block.timestamp);
 
-        //calculate slash amount to be transferred
-        uint256 slash =
-        (1 - (distribution.lastClaim * 1e18) / 730e18) * distribution.amountOwedTotal;
+        uint256 daysSinceStart = FixedPointMathLib.mulDivDown(uint256(timestamp - distInfo.dateStarted), 1e18, 86400);
 
-        uint256 owed = distribution.amountOwedTotal - slash;
+        // Calculate total tokens left in distribution after the above claim
+        uint256 tokensLeft = distInfo.amountOwedTotal - distCurve(distInfo.amountOwedTotal, daysSinceStart);
 
-        //account gets unslashed claimable amount transferred after timestamp updates + leftover balance from slash
-        baoToken.transfer(msg.sender, owed);
-        //main-net treasury recieves all of the slash balances
-        baoToken.transfer(0x3dFc49e5112005179Da613BdE5973229082dAc35, slash);
+        // Calculate slashed amount
+        uint256 slash = FixedPointMathLib.mulDivDown(
+            1e18 - FixedPointMathLib.mulDivDown(daysSinceStart, 1e18, 730e18),
+            tokensLeft,
+            1e18
+        );
+        uint256 owed = tokensLeft - slash;
 
+        // Account gets slashed for ((1 - daysSinceStart / 730) * 100)% of their remaining distribution
+        baoToken.transfer(msg.sender, owed + _claimable);
+        // Main-net treasury receives slashed tokens
+        baoToken.transfer(treasury, slash);
+
+        // Update DistInfo storage for account to reflect the end of the account's distribution
+        distInfo.lastClaim = timestamp;
+        distInfo.dateEnded = timestamp;
+
+        // Emit tokens claimed event for logging
+        emit TokensClaimed(msg.sender, _claimable);
+        // Emit distribution ended event for logging
         emit DistributionEnded(msg.sender, owed);
     }
 
@@ -128,6 +146,7 @@ contract BaoDistribution is ReentrancyGuard {
     function claimable(address _account, uint64 _timestamp) public view returns (uint256 c) {
         DistInfo memory distInfo = distributions[_account];
         require(distInfo.dateStarted != 0, "ERROR: Address unknown");
+        require(distInfo.dateEnded == 0, "ERROR: Ended distribution early");
 
         uint64 timestamp = _timestamp == 0 ? uint64(block.timestamp) : _timestamp;
         require(timestamp >= distInfo.dateStarted, "ERROR: Timestamp invalid");
@@ -136,7 +155,8 @@ contract BaoDistribution is ReentrancyGuard {
         uint256 daysSinceClaim = FixedPointMathLib.mulDivDown(uint256(timestamp - distInfo.lastClaim), 1e18, 86400);
 
         // Allow the account to claim all tokens accrued since the last time they've claimed.
-        c = distCurve(distInfo.amountOwedTotal, daysSinceStart) - distCurve(distInfo.amountOwedTotal, daysSinceStart - daysSinceClaim);
+        uint256 _total = distInfo.amountOwedTotal;
+        c = distCurve(_total, daysSinceStart) - distCurve(_total, daysSinceStart - daysSinceClaim);
     }
 
     /**
