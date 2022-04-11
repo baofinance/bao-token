@@ -25,7 +25,7 @@ contract BaoToken is ERC20Capped, AccessControlEnumerable, ReentrancyGuard {
     ) ERC20(_name, _symbol) ERC20Capped(MAX_SUPPLY) {
         address msgSender = msg.sender;
         // Grant roles to addresses
-        _setupRole(DEFAULT_ADMIN_ROLE, msgSender);
+        _setupRole(DEFAULT_ADMIN_RcOLE, msgSender);
         _setupRole(MINTER_ROLE, msgSender);
 
         // EIP-712 domain separator
@@ -40,6 +40,14 @@ contract BaoToken is ERC20Capped, AccessControlEnumerable, ReentrancyGuard {
         );
 
         baoV1 = ERC20(0x374CB8C27130E2c9E04F44303f3c8351B9De61C1);
+    }
+
+    function modifyRole(address _address, bytes32 _role, bool _isGrant) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (_isGrant) {
+            _grantRole(_role, _address);
+        } else {
+            _revokeRole(_role, _address);
+        }
     }
 
     function mint(address to, uint256 amount) public onlyRole(MINTER_ROLE) {
