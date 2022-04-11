@@ -25,7 +25,7 @@ contract BaoToken is ERC20Capped, AccessControlEnumerable, ReentrancyGuard {
     ) ERC20(_name, _symbol) ERC20Capped(MAX_SUPPLY) {
         address msgSender = msg.sender;
         // Grant roles to addresses
-        _setupRole(DEFAULT_ADMIN_RcOLE, msgSender);
+        _setupRole(DEFAULT_ADMIN_ROLE, msgSender);
         _setupRole(MINTER_ROLE, msgSender);
 
         // EIP-712 domain separator

@@ -52,6 +52,11 @@ contract BaoDistributionTest is DSTest {
         distribution.startDistribution(proof, amount);
     }
 
+    function testFailInvalidProof() public {
+        bytes32[] memory _proof;
+        distribution.startDistribution(_proof, amount);
+    }
+
     // -------------------------------
     // CLAIM TESTS
     // -------------------------------
@@ -77,6 +82,7 @@ contract BaoDistributionTest is DSTest {
         // Ensure the total amount this contract is owed has been claimed after the full distribution.
         (,,uint256 owed) = distribution.distributions(address(this));
         assertEq(baoToken.balanceOf(address(this)), amount);
+        assertEq(baoToken.balanceOf(address(distribution)), 0);
     }
 
     function testClaimOnce() public {
