@@ -36,6 +36,7 @@ contract BaoDistribution is ReentrancyGuard {
 
     event DistributionStarted(address _account);
     event TokensClaimed(address _account, uint256 _amount);
+    event DistributionEnded(address _account, uint256 _amount);
 
     /**
      * Create a new BaoDistribution contract.
@@ -76,17 +77,43 @@ contract BaoDistribution is ReentrancyGuard {
      * Claim all tokens that have been accrued since msg.sender's last claim.
      */
     function claim() external nonReentrant {
-        uint256 claimable = claimable(msg.sender, 0);
-        require(claimable > 0, "ERROR: Nothing to claim");
+        uint256 _claimable = claimable(msg.sender, 0);
+        require(_claimable > 0, "ERROR: Nothing to claim");
 
         // Update account's DistInfo
         distributions[msg.sender].lastClaim = uint64(block.timestamp);
 
         // TODO- Are we going to premint all owed tokens (this number is known), or are we going to mint them as they are issued?
-        baoToken.transfer(msg.sender, claimable);
+        baoToken.transfer(msg.sender, _claimable);
 
         // Emit tokens claimed event for logging
-        emit TokensClaimed(msg.sender, claimable);
+        emit TokensClaimed(msg.sender, _claimable);
+    }
+
+    /**
+     * Claim all tokens that have been accrued since msg.sender's last claim. AND
+     * Claim the rest of the total locked amount owed immediately at a slashed rate
+     */
+    function endDistribution() external nonReentrant {
+        uint256 _claimable = claimable(msg.sender, 0);
+        require(_claimable > 0, "ERROR: Nothing to claim");
+        DistInfo memory distribution;
+
+        // Update account's DistInfo
+        distribution.lastClaim = uint64(block.timestamp);
+
+        //calculate slash amount to be transferred
+        uint256 slash =
+        (1 - (distribution.lastClaim * 1e18) / 730e18) * distribution.amountOwedTotal;
+
+        uint256 owed = distribution.amountOwedTotal - slash;
+
+        //account gets unslashed claimable amount transferred after timestamp updates + leftover balance from slash
+        baoToken.transfer(msg.sender, owed);
+        //main-net treasury recieves all of the slash balances
+        baoToken.transfer(0x3dFc49e5112005179Da613BdE5973229082dAc35, slash);
+
+        emit DistributionEnded(msg.sender, owed);
     }
 
     /**

@@ -102,4 +102,23 @@ contract BaoDistributionTest is DSTest {
     function testFailClaimableUnrecognizedAddress() public {
         distribution.claimable(address(0), 0);
     }
+
+    //END Distribution tests
+    function testFailEndDistributionZeroTokens() public {
+        distribution.startDistribution(proof, amount);
+        distribution.endDistribution();
+    }
+
+    function testEndDistribution() public {
+        distribution.startDistribution(proof, amount);
+
+        cheats.warp(block.timestamp + 365 days);
+        distribution.endDistribution();
+
+        //assert balanceOf(address(this)) = amount owed based on normal claim + slash claim
+        assertEq(
+            baoToken.balanceOf(address(this)),
+            distribution.distCurve(amount, FixedPointMathLib.mulDivDown((365 days), 1e18, 86400))
+        );
+    }
 }
