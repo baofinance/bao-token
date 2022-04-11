@@ -11,10 +11,9 @@ contract BaoToken is ERC20Capped, AccessControlEnumerable, ReentrancyGuard {
     );
     bytes32 private constant DOMAIN_VERSIONHASH = keccak256("1");
     bytes32 private constant DOMAIN_SALT = 0xfff6c856a1f2b4269a1d1d9bacd121f1c9273b6650961875824ce18cfc2ed86e;
-    bytes32 private DOMAIN_SEPARATOR; //defined by constructor
+    bytes32 private DOMAIN_SEPARATOR; // defined by constructor
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-    bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
     uint256 public constant MAX_SUPPLY = 15e26; // 1.5 billion
 
@@ -28,7 +27,6 @@ contract BaoToken is ERC20Capped, AccessControlEnumerable, ReentrancyGuard {
         // Grant roles to addresses
         _setupRole(DEFAULT_ADMIN_ROLE, msgSender);
         _setupRole(MINTER_ROLE, msgSender);
-        _setupRole(BURNER_ROLE, msgSender);
 
         // EIP-712 domain separator
         DOMAIN_SEPARATOR = keccak256(
@@ -49,8 +47,8 @@ contract BaoToken is ERC20Capped, AccessControlEnumerable, ReentrancyGuard {
         _mint(to, amount);
     }
 
-    function burn(address from, uint256 amount) public onlyRole(BURNER_ROLE) {
-        _burn(from, amount);
+    function burn(uint256 _amount) external {
+        _burn(msg.sender, _amount);
     }
 
     function convertV1(uint256 _amount) public nonReentrant {

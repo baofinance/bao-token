@@ -130,9 +130,9 @@ contract BaoDistribution is ReentrancyGuard {
             _daysSinceStart > 1e20 // Function goes from linear to parabolic at day 101
             ? (FixedPointMathLib.mulDivDown(
             199914,
-            FixedPointMathLib.mulDivDown(_daysSinceStart, _daysSinceStart, 1e18),
-            1e9
-        ) - FixedPointMathLib.mulDivDown(120641, _daysSinceStart, 1e7) + 22727e14) / 1e2
+                FixedPointMathLib.mulDivDown(_daysSinceStart, _daysSinceStart, 1e18),
+                1e9
+            ) - FixedPointMathLib.mulDivDown(120641, _daysSinceStart, 1e7) + 22727e14) / 1e2
             : FixedPointMathLib.mulDivDown(3065, _daysSinceStart, 1e7),
             1e18
         );
