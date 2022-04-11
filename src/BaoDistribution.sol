@@ -78,11 +78,11 @@ contract BaoDistribution is ReentrancyGuard {
     function claim() external nonReentrant {
         uint256 claimable = claimable(msg.sender, 0);
         require(claimable > 0, "ERROR: Nothing to claim");
-        uint64 timestamp = uint64(block.timestamp);
 
         // Update account's DistInfo
-        distributions[msg.sender].lastClaim = timestamp;
+        distributions[msg.sender].lastClaim = uint64(block.timestamp);
 
+        // TODO- Are we going to premint all owed tokens (this number is known), or are we going to mint them as they are issued?
         baoToken.transfer(msg.sender, claimable);
 
         // Emit tokens claimed event for logging
@@ -96,6 +96,7 @@ contract BaoDistribution is ReentrancyGuard {
      *
      * @param _account Account address to query.
      * @param _timestamp Timestamp to query.
+     * @return c _account's claimable tokens, scaled by 1e18.
      */
     function claimable(address _account, uint64 _timestamp) public view returns (uint256 c) {
         DistInfo memory distInfo = distributions[_account];
@@ -111,13 +112,9 @@ contract BaoDistribution is ReentrancyGuard {
         c = distCurve(distInfo.amountOwedTotal, daysSinceStart) - distCurve(distInfo.amountOwedTotal, daysSinceStart - daysSinceClaim);
     }
 
-    // -------------------------------
-    // PRIVATE FUNCTIONS
-    // -------------------------------
-
     /**
-     * Get the amount of tokens that would have been accrued along the distribution curve assuming no
-     * claims have been made.
+     * Get the amount of tokens that would have been accrued along the distribution curve, assuming _daysSinceStart
+     * days have passed and the account has never claimed.
      *
      * f(x) =
      * 0 <= x <= 100 : 0.03065x
@@ -125,28 +122,34 @@ contract BaoDistribution is ReentrancyGuard {
      *
      * @param _amountOwedTotal Total amount of tokens owed, scaled by 1e18.
      * @param _daysSinceStart Time since the start of the distribution, scaled by 1e18.
+     * @return uint256 Amount of tokens accrued on the distribution curve, assuming the time passed is _daysSinceStart.
      */
     function distCurve(uint256 _amountOwedTotal, uint256 _daysSinceStart) public pure returns (uint256) {
         return _daysSinceStart >= 730e18 ? _amountOwedTotal : FixedPointMathLib.mulDivDown(
             _amountOwedTotal,
             _daysSinceStart > 1e20 // Function goes from linear to parabolic at day 101
             ? (FixedPointMathLib.mulDivDown(
-                199914,
-                FixedPointMathLib.mulDivDown(_daysSinceStart, _daysSinceStart, 1e18),
-                1e9
-            ) - FixedPointMathLib.mulDivDown(120641, _daysSinceStart, 1e7) + 22727e14) / 1e2
+            199914,
+            FixedPointMathLib.mulDivDown(_daysSinceStart, _daysSinceStart, 1e18),
+            1e9
+        ) - FixedPointMathLib.mulDivDown(120641, _daysSinceStart, 1e7) + 22727e14) / 1e2
             : FixedPointMathLib.mulDivDown(3065, _daysSinceStart, 1e7),
             1e18
         );
     }
+
+    // -------------------------------
+    // PRIVATE FUNCTIONS
+    // -------------------------------
 
     /**
      * Verifies a merkle proof against the stored root.
      *
      * @param _proof Merkle proof.
      * @param _leaf Leaf to verify.
+     * @return bool True if proof is valid, false if proof is invalid.
      */
-    function verifyProof(bytes32[] memory _proof, bytes32 _leaf) public view returns (bool) {
+    function verifyProof(bytes32[] memory _proof, bytes32 _leaf) private view returns (bool) {
         return MerkleProof.verify(_proof, merkleRoot, _leaf);
     }
 }
