@@ -32,6 +32,7 @@ const fetchLockedBalances = async () => {
       }
     `
 
+  console.log('Fetching mainnet data from subgraph...')
   for (let i = 0;;i += 1000) {
     const query = getQuery(i)
     const { data: mainnet } = await axios.post('https://api.thegraph.com/subgraphs/name/n0xmare/locked-bao-mainnet', { query })
@@ -46,7 +47,11 @@ const fetchLockedBalances = async () => {
   }
 
   const mainnetAddresses = lockedBalances.map((account: any) => account.address)
+  console.log(`Done! Found ${mainnetAddresses.length} addresses.`)
 
+  console.log('Fetching xdai data from subgraph and merging datasets...')
+  let updated = 0
+  let newAddresses = 0
   for (let i = 1000;;i += 1000) {
     const query = getQuery(i)
     const { data: xdai } = await axios.post(
@@ -64,26 +69,29 @@ const fetchLockedBalances = async () => {
           .from(lockedBalances[index].amount)
           .add(account.amountOwed)
           .toString()
+        updated++
       } else {
         lockedBalances.push({
           address: account.id,
           amount: account.amountOwed.toString()
         })
+        newAddresses++
       }
     }
   }
+
+  console.log(`Done! Updated ${updated} addresses and found ${newAddresses} new addresses.`)
 
   lockedBalances = lockedBalances.sort((a: any, b: any): number => {
     return BigNumber.from(a.amount).gt(BigNumber.from(b.amount)) ? -1 : 1
   })
 
   fs.writeFileSync(`${__dirname}/../snapshot.json`, JSON.stringify(lockedBalances, null, 2))
+  console.log('Done! Results written to snapshot.json')
 }
 
 const main = async () => {
-  console.log('Fetching mainnet data from subgraph...')
   await fetchLockedBalances()
-  console.log('Done!\n')
 
   console.log('Checking for duplicates and computing totals...')
   checkDupes()
