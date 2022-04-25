@@ -1,7 +1,7 @@
 pragma solidity ^0.8.10;
 
 import "@openzeppelin/access/AccessControlEnumerable.sol";
-import "@openzeppelin/token/ERC20/extensions/ERC20Votes.sol";
+import "@openzeppelin/token/ERC20/ERC20.sol";
 import "solmate/utils/ReentrancyGuard.sol";
 
 contract BaoToken is AccessControlEnumerable, ReentrancyGuard, ERC20 {
