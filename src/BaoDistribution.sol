@@ -1,4 +1,4 @@
-pragma solidity ^0.8.10;
+pragma solidity ^0.8.13;
 
 import "./BAOv2.sol";
 import "solmate/utils/FixedPointMathLib.sol";
@@ -40,6 +40,16 @@ contract BaoDistribution is ReentrancyGuard {
     event TokensClaimed(address _account, uint256 _amount);
     event DistributionEnded(address _account, uint256 _amount);
 
+    // -------------------------------
+    // CUSTOM ERRORS
+    // -------------------------------
+
+    error DistributionAlreadyStarted();
+    error DistributionEndedEarly();
+    error InvalidProof(address _account, uint256 _amount, bytes32[] _proof);
+    error ZeroClaimable();
+    error InvalidTimestamp();
+
     /**
      * Create a new BaoDistribution contract.
      *
@@ -63,10 +73,12 @@ contract BaoDistribution is ReentrancyGuard {
      * @param _amount Amount of tokens msg.sender is owed. Used to generate the merkle tree leaf.
      */
     function startDistribution(bytes32[] memory _proof, uint256 _amount) external {
-        require(distributions[msg.sender].dateStarted == 0, "ERROR: Distribution already started");
-        require(verifyProof(_proof, keccak256(abi.encodePacked(msg.sender, _amount))), "ERROR: Invalid proof");
+        if (distributions[msg.sender].dateStarted != 0) {
+            revert DistributionAlreadyStarted();
+        } else if (!verifyProof(_proof, keccak256(abi.encodePacked(msg.sender, _amount)))) {
+            revert InvalidProof(msg.sender, _amount, _proof);
+        }
 
-        // This is artificial for now.
         uint64 _now = uint64(block.timestamp);
         distributions[msg.sender] = DistInfo(
             _now,
@@ -82,12 +94,14 @@ contract BaoDistribution is ReentrancyGuard {
      */
     function claim() external nonReentrant {
         uint256 _claimable = claimable(msg.sender, 0);
-        require(_claimable > 0, "ERROR: Nothing to claim");
+        if (_claimable == 0) {
+            revert ZeroClaimable();
+        }
 
         // Update account's DistInfo
         distributions[msg.sender].lastClaim = uint64(block.timestamp);
 
-        // TODO- Are we going to premint all owed tokens (this number is known), or are we going to mint them as they are issued?
+        // Send account the tokens that they've accrued since their last claim.
         baoToken.transfer(msg.sender, _claimable);
 
         // Emit tokens claimed event for logging
@@ -101,7 +115,9 @@ contract BaoDistribution is ReentrancyGuard {
      */
     function endDistribution() external nonReentrant {
         uint256 _claimable = claimable(msg.sender, 0);
-        require(_claimable > 0, "ERROR: Nothing to claim");
+        if (_claimable == 0) {
+            revert ZeroClaimable();
+        }
 
         DistInfo storage distInfo = distributions[msg.sender];
         uint64 timestamp = uint64(block.timestamp);
@@ -121,7 +137,7 @@ contract BaoDistribution is ReentrancyGuard {
 
         // Account gets slashed for ((1 - daysSinceStart / 730) * 100)% of their remaining distribution
         baoToken.transfer(msg.sender, owed + _claimable);
-        // Main-net treasury receives slashed tokens
+        // Protocol treasury receives slashed tokens
         baoToken.transfer(treasury, slash);
 
         // Update DistInfo storage for account to reflect the end of the account's distribution
@@ -145,11 +161,17 @@ contract BaoDistribution is ReentrancyGuard {
      */
     function claimable(address _account, uint64 _timestamp) public view returns (uint256 c) {
         DistInfo memory distInfo = distributions[_account];
-        require(distInfo.dateStarted != 0, "ERROR: Address unknown");
-        require(distInfo.dateEnded == 0, "ERROR: Ended distribution early");
+        uint64 dateStarted = distInfo.dateStarted;
+        if (dateStarted == 0) {
+            revert ZeroClaimable();
+        } else if (distInfo.dateEnded != 0) {
+            revert DistributionEndedEarly();
+        }
 
         uint64 timestamp = _timestamp == 0 ? uint64(block.timestamp) : _timestamp;
-        require(timestamp >= distInfo.dateStarted, "ERROR: Timestamp invalid");
+        if (timestamp < dateStarted) {
+            revert InvalidTimestamp();
+        }
 
         uint256 daysSinceStart = FixedPointMathLib.mulDivDown(uint256(timestamp - distInfo.dateStarted), 1e18, 86400);
         uint256 daysSinceClaim = FixedPointMathLib.mulDivDown(uint256(timestamp - distInfo.lastClaim), 1e18, 86400);
@@ -176,7 +198,7 @@ contract BaoDistribution is ReentrancyGuard {
             _amountOwedTotal,
             _daysSinceStart > 1e20 // Function goes from linear to parabolic at day 101
             ? (FixedPointMathLib.mulDivDown(
-            199914,
+                199914,
                 FixedPointMathLib.mulDivDown(_daysSinceStart, _daysSinceStart, 1e18),
                 1e9
             ) - FixedPointMathLib.mulDivDown(120641, _daysSinceStart, 1e7) + 22727e14) / 1e2
