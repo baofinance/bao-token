@@ -43,7 +43,7 @@ contract BaoToken is ERC20, ReentrancyGuard {
         string memory _symbol // BAO
     ) ERC20(_name, _symbol, 18) {
         minter = msg.sender;
-        mint(minter, INITIAL_SUPPLY); //pre-mint using 1.5B for now
+        mint(minter, INITIAL_SUPPLY); //pre-mint using 1.5B, for now
         start_epoch_time = block.timestamp + INFLATION_DELAY - RATE_REDUCTION_TIME;
         mining_epoch = -1;
         rate = 0;
@@ -186,10 +186,5 @@ contract BaoToken is ERC20, ReentrancyGuard {
 
     function burn(uint256 _amount) external {
         _burn(msg.sender, _amount);
-    }
-
-    function convertV1(uint256 _amount) public nonReentrant {
-        baoV1.transferFrom(msg.sender, address(0), _amount); // Burn BAOV1
-        mint(msg.sender, _amount / 1e4); // BaoV2's supply is reduced by a factor of 10,000
     }
 }

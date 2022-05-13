@@ -36,7 +36,7 @@ contract BaoDistributionTest is DSTest {
             0x3dFc49e5112005179Da613BdE5973229082dAc35
         );
 
-        // Mint the amount that this contract will be distributed
+        //Mint the amount that this contract will be distributed
         amount = 1e22;
         baoToken.mint(address(distribution), amount);
 

@@ -174,7 +174,7 @@ contract BaoDistribution is ReentrancyGuard {
             revert InvalidTimestamp();
         }
 
-        uint256 daysSinceStart = FixedPointMathLib.mulDivDown(uint256(timestamp - distInfo.dateStarted), 1e18, 86400);
+        uint256 daysSinceStart = FixedPointMathLib.mulDivDown(uint256(timestamp - dateStarted), 1e18, 86400);
         uint256 daysSinceClaim = FixedPointMathLib.mulDivDown(uint256(timestamp - distInfo.lastClaim), 1e18, 86400);
 
         // Allow the account to claim all tokens accrued since the last time they've claimed.
