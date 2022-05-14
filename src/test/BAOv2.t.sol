@@ -26,8 +26,6 @@ contract ContractTest is DSTest {
 
     }
 
-    //check state of supply by comparing to Real value(baoToken.totalSupply())
-
     function testInitSupply() public {
         assertEq(baoToken.INITIAL_SUPPLY(), baoToken.totalSupply());
     }
@@ -65,12 +63,16 @@ contract ContractTest is DSTest {
         cheats.startPrank(caller);
         baoToken.update_mining_parameters();
         cheats.stopPrank();
+        assertEq(baoToken.rate(), 0);
+        assertEq(baoToken.mining_epoch(), -1);
     }
 
     function testFail_update_mining_parameters_twice() public {
         cheats.warp(block.timestamp + 1 days);
         baoToken.update_mining_parameters();
         baoToken.update_mining_parameters();
+        assertEq(baoToken.rate(), 0);
+        assertEq(baoToken.mining_epoch(), -1);
     }
 
     //more to be done in testing update mining parameters
@@ -79,18 +81,23 @@ contract ContractTest is DSTest {
 
     function testMint() public {
         baoToken.mint(address(this), 1);
+        assertEq(baoToken.totalSupply(), (15e26 + 1));
     }
+
+    //more tests to add for minting
 
     function testFailPrankMint() public {
         address caller = address(0);
         cheats.startPrank(caller);
         baoToken.mint(address(this), 1);
         cheats.stopPrank();
+        assertEq(baoToken.totalSupply(), baoToken.INITIAL_SUPPLY());
     }
 
     function testBurn() public {
         uint256 burnAmount = 1;
         baoToken.burn(burnAmount);
+        assertEq(baoToken.totalSupply(), (baoToken.INITIAL_SUPPLY() - 1));
     }
 
     function testFailPrankBurn() public {
@@ -98,6 +105,7 @@ contract ContractTest is DSTest {
         cheats.startPrank(caller);
         baoToken.burn(1);
         cheats.stopPrank();
+        assertEq(baoToken.totalSupply(), baoToken.INITIAL_SUPPLY());
     }
 
 
