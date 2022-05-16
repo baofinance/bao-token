@@ -1,9 +1,9 @@
-# curve-dao-contracts/contracts/vests
+# /src/vests
 
-Contracts for vesting CRV.
+Contracts for vesting BAO.
 
 ## Contracts
 
-* [`VestingEscrow`](VestingEscrow.vy): Vests CRV tokens for multiple addresses over multiple vesting periods
-* [`VestingEscrowFactory`](VestingEscrowFactory.vy): Factory to store CRV and deploy many simplified vesting contracts
-* [`VestingEscrowSimple`](VestingEscrowSimple.vy): Simplified vesting contract that holds CRV for a single address
+* [`VestingEscrow`](VestingEscrow.vy): Vests BAO tokens for multiple addresses over multiple vesting periods
+* [`VestingEscrowFactory`](VestingEscrowFactory.vy): Factory to store BAO and deploy many simplified vesting contracts
+* [`VestingEscrowSimple`](VestingEscrowSimple.vy): Simplified vesting contract that holds BAO for a single address

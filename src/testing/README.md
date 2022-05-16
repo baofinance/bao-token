@@ -1,6 +1,6 @@
-# curve-dao-contracts/contracts/testing
+# /src/testing
 
-Contracts used exclusively for testing. These are not considered part of Curve DAO and so do not fall under the Curve DAO [license](../../LICENSE).
+Contracts used exclusively for testing. These are not considered part of Curve DAO and so do not fall under the DAO [license](../../LICENSE).
 
 ## Contracts
 

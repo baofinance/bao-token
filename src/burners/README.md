@@ -1,4 +1,4 @@
-# curve-dao-contracts/contracts/burners/deprecated
+# /src/burners/deprecated
 
 Contracts used to convert admin fees into 3CRV prior to distribution to the DAO.
 
