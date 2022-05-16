@@ -7,12 +7,12 @@ All contract sources are within this directory.
 * [`burners`](burners): Contracts used to convert admin fees into 3CRV prior to distribution to the DAO.
 * [`gauges`](gauges): Contracts used for measuring provided liquidity.
 * [`testing`](testing): Contracts used exclusively for testing. Not considered to be a core part of this project.
-* [`vests`](vests): Contracts for vesting CRV.
+* [`vests`](vests): Contracts for vesting BAO.
 
 ## Contracts
 
 * [`BAOv2`](BAOv2.sol): Bao Token (BAO), an [ERC20](https://eips.ethereum.org/EIPS/eip-20) with piecewise-linear mining supply
-* [`GaugeController`](GaugeController.vy): Controls liquidity gauges and the issuance of CRV through the liquidity gauges
+* [`GaugeController`](GaugeController.vy): Controls liquidity gauges and the issuance of BAO through the liquidity gauges
 * [`LiquidityGauge`](LiquidityGauge.vy): Measures the amount of liquidity provided by each user
 * [`Minter`](Minter.vy): Token minting contract used for issuing new BAO
 * [`PoolProxy`](PoolProxy.vy): StableSwap pool proxy contract for interactions between the DAO and pool contracts
