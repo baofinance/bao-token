@@ -38,7 +38,8 @@ contract BaoDistributionTest is DSTest {
 
         //Mint the amount that this contract will be distributed
         amount = 1e22;
-        baoToken.mint(address(distribution), amount);
+        baoToken.transfer(address(distribution), amount);
+        baoToken.burn(baoToken.totalSupply() - amount);
 
         // Assign this contract's proof for usage within the tests
         proof.push(0x3cc9c7db8571b870390438e4fe0a4fcfe1a095ece4444bf77b8ca35f89e93809);
