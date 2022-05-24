@@ -76,7 +76,7 @@ contract BaoDistributionTest is DSTest {
 
         // Claim every day, twice a day throughout the 2 year distribution and check if the amount
         // we've received is in-line with the distribution curve each time
-        for (uint i; i < 1460; i += 1) {
+        for (uint i; i < 2190; ++i) {
             cheats.warp(block.timestamp + 12 hours);
             distribution.claim();
             assertEq(
@@ -91,7 +91,7 @@ contract BaoDistributionTest is DSTest {
     }
 
     function testClaimableFuzz(uint64 _daysSince) public {
-        cheats.assume(_daysSince <= 730 days && _daysSince > 0);
+        cheats.assume(_daysSince <= 1095 days && _daysSince > 0);
 
         distribution.startDistribution(proof, amount);
         uint256 claimable = distribution.claimable(address(this), 0);
@@ -110,7 +110,7 @@ contract BaoDistributionTest is DSTest {
     function testClaimOnce() public {
         distribution.startDistribution(proof, amount);
 
-        cheats.warp(block.timestamp + 750 days);
+        cheats.warp(block.timestamp + 1100 days);
         distribution.claim();
 
         assertEq(baoToken.balanceOf(address(this)), amount);
@@ -135,24 +135,25 @@ contract BaoDistributionTest is DSTest {
     }
 
     function testEndDistribution(uint64 _daysSince) public {
-        cheats.assume(_daysSince <= 730 days && _daysSince > 0);
+        cheats.assume(_daysSince <= 1095 days && _daysSince > 0);
 
         distribution.startDistribution(proof, amount);
 
         cheats.warp(block.timestamp + _daysSince);
         distribution.endDistribution();
 
+        uint256 _days = _toDays(_daysSince);
         uint256 tokensAccruedToDate =  distribution.distCurve(
             amount,
-            _toDays(_daysSince)
+            _days
         );
         uint256 tokensLeft = distribution.distCurve(
             amount,
-            _toDays(730 days)
+            _toDays(1095 days)
         ) - tokensAccruedToDate;
 
         uint256 slash = FixedPointMathLib.mulDivDown(
-            1e18 - FixedPointMathLib.mulDivDown(_toDays(_daysSince), 1e18, 730e18),
+            _days > 365e18 ? 95e16 : 1e18 - FixedPointMathLib.mulDivDown(_days, 1369863013, 1e13),
             tokensLeft,
             1e18
         );

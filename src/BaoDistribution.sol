@@ -112,7 +112,10 @@ contract BaoDistribution is ReentrancyGuard {
     /**
      * Claim all tokens that have been accrued since msg.sender's last claim AND
      * the rest of the total locked amount owed immediately at a pre-defined slashed rate.
-     * Rate: ((1 - daysSinceStart / 730) * 100)% of remaining distribution
+     *
+     * Slash Rate:
+     * days_since_start <= 365: (100 - .01369863013 * days_since_start)%
+     * days_since_start > 365: 95%
      */
     function endDistribution() external nonReentrant {
         uint256 _claimable = claimable(msg.sender, 0);
@@ -130,13 +133,13 @@ contract BaoDistribution is ReentrancyGuard {
 
         // Calculate slashed amount
         uint256 slash = FixedPointMathLib.mulDivDown(
-            1e18 - FixedPointMathLib.mulDivDown(daysSinceStart, 1e18, 730e18),
+            daysSinceStart > 365e18 ? 95e16 : 1e18 - FixedPointMathLib.mulDivDown(daysSinceStart, 1369863013, 1e13),
             tokensLeft,
             1e18
         );
         uint256 owed = tokensLeft - slash;
 
-        // Account gets slashed for ((1 - daysSinceStart / 730) * 100)% of their remaining distribution
+        // Account gets slashed for (slash / tokensLeft)% of their remaining distribution
         baoToken.transfer(msg.sender, owed + _claimable);
         // Protocol treasury receives slashed tokens
         baoToken.transfer(treasury, slash);
@@ -186,26 +189,47 @@ contract BaoDistribution is ReentrancyGuard {
      * Get the amount of tokens that would have been accrued along the distribution curve, assuming _daysSinceStart
      * days have passed and the account has never claimed.
      *
-     * f(x) =
-     * 0 <= x <= 100 : 0.03065x
-     * 100 < x <= 730 : 0.000199914x^2 - 0.0120641x + 2.2727
+     * f(x) = 0 <= x <= 1095 : (2x/219)^2
      *
      * @param _amountOwedTotal Total amount of tokens owed, scaled by 1e18.
      * @param _daysSinceStart Time since the start of the distribution, scaled by 1e18.
-     * @return uint256 Amount of tokens accrued on the distribution curve, assuming the time passed is _daysSinceStart.
+     * @return _amount Amount of tokens accrued on the distribution curve, assuming the time passed is _daysSinceStart.
      */
-    function distCurve(uint256 _amountOwedTotal, uint256 _daysSinceStart) public pure returns (uint256) {
-        return _daysSinceStart >= 730e18 ? _amountOwedTotal : FixedPointMathLib.mulDivDown(
-            _amountOwedTotal,
-            _daysSinceStart > 1e20 // Function goes from linear to parabolic at day 101
-            ? (FixedPointMathLib.mulDivDown(
-                199914,
-                FixedPointMathLib.mulDivDown(_daysSinceStart, _daysSinceStart, 1e18),
-                1e9
-            ) - FixedPointMathLib.mulDivDown(120641, _daysSinceStart, 1e7) + 22727e14) / 1e2
-            : FixedPointMathLib.mulDivDown(3065, _daysSinceStart, 1e7),
-            1e18
-        );
+    function distCurve(uint256 _amountOwedTotal, uint256 _daysSinceStart) public pure returns (uint256 _amount) {
+        if (_daysSinceStart >= 1095e18) return _amountOwedTotal;
+
+        assembly {
+            // Solmate's mulDivDown function
+            function mulDivDown(x, y, denominator) -> z {
+                // Store x * y in z for now.
+                z := mul(x, y)
+
+                // Equivalent to require(denominator != 0 && (x == 0 || (x * y) / x == y))
+                if iszero(and(iszero(iszero(denominator)), or(iszero(x), eq(div(z, x), y)))) {
+                    revert(0, 0)
+                }
+
+                // Divide z by the denominator.
+                z := div(z, denominator)
+            }
+
+            // This is disgusting, but its more gas efficient than storing the results in `_amount` each time.
+            _amount := mulDivDown( // Multiply `amountOwedTotal` by distribution curve result
+                div( // Correct precision after exponent op (scale down by 1e20 instead of 1e18 to convert % to a proportion)
+                    exp( // Raise result to the power of two
+                        mulDivDown( // (2/219) * `_daysSinceStart`
+                            mulDivDown(0x1BC16D674EC80000, 0xDE0B6B3A7640000, 0xBDF3C4BB0328C0000),
+                            _daysSinceStart,
+                            0xDE0B6B3A7640000
+                        ),
+                        2
+                    ),
+                    0xDE0B6B3A7640000
+                ),
+                _amountOwedTotal,
+                0x56BC75E2D63100000
+            )
+        }
     }
 
     // -------------------------------
