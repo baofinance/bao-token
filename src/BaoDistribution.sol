@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.13;
 
-import "./BAOv2.sol";
+//import "./BAOv2.sol";
+import "./ERC20BAO.vy";
 import "solmate/utils/FixedPointMathLib.sol";
 import "solmate/utils/ReentrancyGuard.sol";
 import "@openzeppelin/utils/cryptography/MerkleProof.sol";
@@ -12,7 +13,8 @@ contract BaoDistribution is ReentrancyGuard {
     // VARIABLES
     // -------------------------------
 
-    BaoToken public baoToken;
+    //BaoToken public baoToken;
+    ERC20BAO public baoToken;
     mapping(address => DistInfo) public distributions;
     address public treasury;
 
@@ -57,7 +59,7 @@ contract BaoDistribution is ReentrancyGuard {
      * @param _baoToken Token to distribute.
      * @param _merkleRoot Merkle root to verify accounts' inclusion and amount owed when starting their distribution.
      */
-    constructor(BaoToken _baoToken, bytes32 _merkleRoot, address _treasury) {
+    constructor(/*BaoToken*/ERC20BAO _baoToken, bytes32 _merkleRoot, address _treasury) {
         baoToken = _baoToken;
         merkleRoot = _merkleRoot;
         treasury = _treasury;
