@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.13;
 
-//import "./BAOv2.sol";
-import "./ERC20BAO.vy";
+import "@openzeppelin/token/ERC20/IERC20.sol";
 import "solmate/utils/FixedPointMathLib.sol";
 import "solmate/utils/ReentrancyGuard.sol";
 import "@openzeppelin/utils/cryptography/MerkleProof.sol";
+import "./IVotingEscrow.sol";
 
 contract BaoDistribution is ReentrancyGuard {
 
@@ -14,7 +14,8 @@ contract BaoDistribution is ReentrancyGuard {
     // -------------------------------
 
     //BaoToken public baoToken;
-    ERC20BAO public baoToken;
+    IERC20 public baoToken;
+    IVotingEscrow public votingEscrow;
     mapping(address => DistInfo) public distributions;
     address public treasury;
 
@@ -42,6 +43,7 @@ contract BaoDistribution is ReentrancyGuard {
     event DistributionStarted(address _account);
     event TokensClaimed(address _account, uint256 _amount);
     event DistributionEnded(address _account, uint256 _amount);
+    event DistributionLocked(address _account, uint256 _amount);
 
     // -------------------------------
     // CUSTOM ERRORS
@@ -57,10 +59,12 @@ contract BaoDistribution is ReentrancyGuard {
      * Create a new BaoDistribution contract.
      *
      * @param _baoToken Token to distribute.
+     * @param _votingEscrow vote escrow BAO contract
      * @param _merkleRoot Merkle root to verify accounts' inclusion and amount owed when starting their distribution.
      */
-    constructor(/*BaoToken*/ERC20BAO _baoToken, bytes32 _merkleRoot, address _treasury) {
-        baoToken = _baoToken;
+    constructor(address _baoToken, address _votingEscrow ,bytes32 _merkleRoot, address _treasury) {
+        baoToken = IERC20(_baoToken);
+        votingEscrow = IVotingEscrow(_votingEscrow);
         merkleRoot = _merkleRoot;
         treasury = _treasury;
     }
@@ -154,6 +158,31 @@ contract BaoDistribution is ReentrancyGuard {
         emit TokensClaimed(msg.sender, _claimable);
         // Emit distribution ended event for logging
         emit DistributionEnded(msg.sender, owed);
+    }
+
+    /**
+     * Lock all tokens that have NOT been claimed since msg.sender's last claim
+     *
+     * The Lock into veBAO will be set at 3 years with this function in-line with length of distribution curve
+     */
+    function lockDistribution() external nonReentrant {
+        uint256 _claimable = claimable(msg.sender, 0);
+        if (_claimable == 0) {
+            revert ZeroClaimable();
+        }
+
+        DistInfo storage distInfo = distributions[msg.sender];
+        uint64 timestamp = uint64(block.timestamp);
+
+        uint256 daysSinceStart = FixedPointMathLib.mulDivDown(uint256(timestamp - distInfo.dateStarted), 1e18, 86400);
+
+        // Calculate total tokens left in distribution after the above claim
+        uint256 tokensLeft = distInfo.amountOwedTotal - distCurve(distInfo.amountOwedTotal, daysSinceStart);
+
+        //lock tokensLeft for msg.sender for 3 years
+        votingEscrow.create_lock_for(msg.sender, tokensLeft, (3*365*86400));
+
+        emit DistributionLocked(msg.sender, tokensLeft);
     }
 
     /**
