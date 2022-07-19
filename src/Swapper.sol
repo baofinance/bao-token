@@ -1,4 +1,4 @@
-pragma solidity 0.8.15;
+pragma solidity ^0.8.13;
 
 import "./IERC20BAO.sol";
 import "solmate/tokens/ERC20.sol";

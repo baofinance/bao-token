@@ -31,7 +31,8 @@ contract BaoDistributionTest is DSTest {
         // The merkle root we provide here is created for testing purposes only. In this merkle tree,
         // this contract's address (0xb4c79dab8f259c7aee6e5b2aa729821864227e84) is owed 1e22 (1000) tokens.
         distribution = new BaoDistribution(
-            baoToken,
+            address(baoToken),
+            address(0),
             0x46c1f7da0f8cf7398e41724cc3a07901298ea14b7d4b5990062450bdb01ac5ec,
             0x3dFc49e5112005179Da613BdE5973229082dAc35
         );
